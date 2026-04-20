@@ -1093,7 +1093,7 @@
 
   <!-- Music Toggle -->
   <button id="music-btn" title="Toggle Music" onclick="toggleMusic()">♪</button>
-  <audio id="bgMusic" loop preload = "auto">
+  <audio id="bgMusic" loop autoplay preload = "auto">
     <source src="vv_trac.mp3" type="audio/mpeg">
   </audio>
 
@@ -2401,25 +2401,49 @@
     setInterval(updateCountdown, 1000);
 
     // ═══════════════════════════════
-    // MUSIC TOGGLE
-    // ═══════════════════════════════
-    let musicPlaying = false;
-    const bgMusic = document.getElementById('bgMusic');
-    const musicBtn = document.getElementById('music-btn');
+// SMART AUTOPLAY & TOGGLE
+// ═══════════════════════════════
+let musicPlaying = false;
+const bgMusic = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('music-btn');
 
-    function toggleMusic() {
-      if (musicPlaying) {
-        bgMusic.pause();
-        musicBtn.textContent = '♪';
-        musicBtn.style.opacity = '0.7';
-      } else {
-        bgMusic.play().catch(() => { });
-        musicBtn.textContent = '⏸';
-        musicBtn.style.opacity = '1';
-      }
-      musicPlaying = !musicPlaying;
-    }
-  </script>
+// Function to start music on first interaction
+function startAudioOnInteraction() {
+  if (!musicPlaying) {
+    bgMusic.play().then(() => {
+      musicPlaying = true;
+      musicBtn.textContent = '⏸';
+      musicBtn.style.opacity = '1';
+      
+      // Once music starts, remove these "listeners" so they don't run again
+      window.removeEventListener('scroll', startAudioOnInteraction);
+      window.removeEventListener('click', startAudioOnInteraction);
+      window.removeEventListener('touchstart', startAudioOnInteraction);
+    }).catch(error => {
+      console.log("Autoplay blocked by browser. Waiting for manual interaction.");
+    });
+  }
+}
+
+// Listen for any of these actions to trigger the music
+window.addEventListener('scroll', startAudioOnInteraction);
+window.addEventListener('click', startAudioOnInteraction);
+window.addEventListener('touchstart', startAudioOnInteraction);
+
+// Keep your existing manual toggle button working too
+function toggleMusic() {
+  if (musicPlaying) {
+    bgMusic.pause();
+    musicBtn.textContent = '♪';
+    musicBtn.style.opacity = '0.7';
+  } else {
+    bgMusic.play();
+    musicBtn.textContent = '⏸';
+    musicBtn.style.opacity = '1';
+  }
+  musicPlaying = !musicPlaying;
+}
+</script>
 </body>
 
 </html>
